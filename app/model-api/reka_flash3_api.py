@@ -6,9 +6,24 @@ import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import os
 from dotenv import load_dotenv
+from contextlib import asynccontextmanager
 
 # Load environment variables
 load_dotenv()
+
+# Global variables for model and tokenizer
+model = None
+tokenizer = None
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    global model, tokenizer
+    model, tokenizer = load_model.remote()
+    yield
+    # Shutdown
+    model = None
+    tokenizer = None
 
 # Create Modal app
 app = modal.App("reka-flash3-api")
@@ -36,16 +51,13 @@ image = modal.Image.debian_slim().pip_install(
     "python-dotenv==1.0.1"
 )
 
-# Create FastAPI app
+# Create FastAPI app with lifespan
 web_app = FastAPI(
     title="Reka Flash 3 API",
     description="API for text generation using Reka Flash 3 model",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
-
-# Global variables for model and tokenizer
-model = None
-tokenizer = None
 
 @app.function(
     image=image,
@@ -64,11 +76,6 @@ def load_model():
         return model, tokenizer
     except Exception as e:
         raise RuntimeError(f"Failed to load model: {str(e)}")
-
-@web_app.on_startup
-async def startup_event():
-    global model, tokenizer
-    model, tokenizer = load_model.remote()
 
 @web_app.post("/generate", response_model=GenerateResponse)
 async def generate_text(request: GenerateRequest):
