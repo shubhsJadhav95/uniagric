@@ -1,13 +1,14 @@
-# Farmer Registration Backend API
+# UniAgric Backend API
 
-This is a FastAPI backend service that handles farmer registration data and stores it in Firebase Firestore.
+This is the backend API for the UniAgric platform, built with FastAPI and Firebase. It handles farmer registration, document management, and risk assessment.
 
 ## Features
 
-- Farmer registration endpoint
-- Fetch all registered farmers
-- Fetch specific farmer by ID
+- Farmer registration with data validation
+- Document upload to Firebase Storage
+- Risk assessment using Reka AI
 - Firebase Firestore integration
+- RESTful API endpoints
 - CORS support for frontend communication
 - Data validation using Pydantic models
 
@@ -16,46 +17,53 @@ This is a FastAPI backend service that handles farmer registration data and stor
 - Python 3.8+
 - Firebase project with Firestore enabled
 - Firebase Admin SDK credentials
+- Reka AI API key
 
 ## Setup
 
-1. Clone the repository
-2. Create a virtual environment:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+1. Create a virtual environment:
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
 
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+2. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
 
-4. Copy the environment variables template:
-   ```bash
-   cp .env.example .env
-   ```
+3. Firebase Setup:
+   - Download your Firebase service account key from the Firebase Console
+   - Save it as `serviceAccountKey.json` in the backend directory
 
-5. Update the `.env` file with your Firebase credentials:
-   - Get your Firebase Admin SDK credentials from the Firebase Console
-   - Replace the placeholder values in `.env` with your actual credentials
+4. Environment Variables:
+   Create a `.env` file with:
+   ```
+   REKA_API_KEY=your_reka_api_key
+   FIREBASE_CREDENTIALS_PATH=path_to_serviceAccountKey.json
+   ```
 
 ## Running the Application
 
-1. Start the development server:
-   ```bash
-   uvicorn app.main:app --reload
-   ```
+Development:
+```bash
+uvicorn main:app --reload
+```
 
-2. The API will be available at `http://localhost:8000`
+Production:
+```bash
+uvicorn main:app --host 0.0.0.0 --port 8000
+```
 
-3. Access the API documentation at:
-   - Swagger UI: `http://localhost:8000/docs`
-   - ReDoc: `http://localhost:8000/redoc`
+The API will be available at `http://localhost:8000`
+
+API Documentation:
+- Swagger UI: `http://localhost:8000/docs`
+- ReDoc: `http://localhost:8000/redoc`
 
 ## API Endpoints
 
-### POST /register
+### POST /api/farmer/register
 Register a new farmer
 ```json
 {
@@ -80,42 +88,51 @@ Register a new farmer
 }
 ```
 
-### GET /farmers
-Get all registered farmers
+### POST /api/farmer/upload-document
+Upload documents for a registered farmer.
 
-### GET /farmers/{farmer_id}
-Get a specific farmer by ID
+### GET /api/farmer/{farmer_id}
+Get farmer details by ID.
+
+### GET /api/farmers
+Get all registered farmers.
 
 ## Deployment
 
-This application can be deployed on various cloud platforms:
+### Option 1: Render
+1. Create a new Web Service
+2. Connect your GitHub repository
+3. Set build command: `pip install -r requirements.txt`
+4. Set start command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+5. Add environment variables
 
-1. **Railway**
-   - Create a new project
-   - Connect your GitHub repository
-   - Add environment variables
-   - Deploy
+### Option 2: Railway
+1. Create a new project
+2. Connect your GitHub repository
+3. Set build command: `pip install -r requirements.txt`
+4. Set start command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+5. Add environment variables
 
-2. **Render**
-   - Create a new Web Service
-   - Connect your GitHub repository
-   - Set build command: `pip install -r requirements.txt`
-   - Set start command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-   - Add environment variables
-   - Deploy
-
-3. **Fly.io**
-   - Install Fly CLI
-   - Run `flyctl launch`
-   - Add environment variables
-   - Deploy with `flyctl deploy`
+### Option 3: Google Cloud Run
+1. Build and push Docker image
+2. Deploy to Cloud Run
+3. Set environment variables
 
 ## Security Considerations
 
-- In production, update CORS settings to only allow your frontend domain
-- Keep Firebase credentials secure and never commit them to version control
-- Consider implementing rate limiting for API endpoints
-- Add authentication middleware for protected routes
+- CORS is configured to allow requests from your frontend domain
+- Firebase Authentication is used for secure access
+- API keys and credentials are stored in environment variables
+- File uploads are validated and stored securely
+- Rate limiting implemented for API endpoints
+- Protected routes use authentication middleware
+
+## Testing
+
+Run tests with:
+```bash
+pytest
+```
 
 ## Contributing
 
@@ -123,4 +140,4 @@ This application can be deployed on various cloud platforms:
 2. Create a feature branch
 3. Commit your changes
 4. Push to the branch
-5. Create a Pull Request 
+5. Create a Pull Request

@@ -31,7 +31,13 @@ export function FarmerRegistrationHeader() {
 
         <div className="ml-auto flex items-center gap-4">
           <Button variant="ghost" className="text-sm" asChild>
-            <Link href="/help">Help & Support</Link>
+            <Link href="/farmer/login">Login</Link>
+          </Button>
+          <Button variant="ghost" className="text-sm" asChild>
+            <Link href="/farmer/register">Sign Up</Link>
+          </Button>
+          <Button variant="ghost" className="text-sm" asChild>
+            <Link href="/farmer/dashboard">Dashboard</Link>
           </Button>
         </div>
       </div>
