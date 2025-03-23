@@ -79,4 +79,78 @@ export const getFarmerDetails = async (farmerId: string) => {
     console.error('Error fetching farmer details:', error);
     throw error;
   }
-}; 
+};
+
+// AI prediction endpoints
+
+export type FarmerPredictionData = {
+  years_experience: number;
+  land_size_hectares: number;
+  previous_loans: number;
+  credit_score: number;
+  annual_income: number;
+  crop_diversity: number;
+  has_irrigation: boolean;
+  farm_type: string;
+};
+
+export type FarmPlanPredictionData = {
+  crop_type: string;
+  soil_type: string;
+  climate: string;
+  area_hectares: number;
+  yield_per_hectare: number;
+};
+
+export type PredictionResult = {
+  prediction: boolean;
+  probability: number;
+  recommendations: string[];
+  visualization_url: string | null;
+};
+
+// Predict farmer approval
+export async function predictFarmerApproval(data: FarmerPredictionData): Promise<PredictionResult> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/predict/farmer`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || 'Failed to get prediction');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error in predictFarmerApproval:', error);
+    throw error;
+  }
+}
+
+// Predict farm plan approval
+export async function predictFarmPlan(data: FarmPlanPredictionData): Promise<PredictionResult> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/predict/farm-plan`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || 'Failed to get prediction');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error in predictFarmPlan:', error);
+    throw error;
+  }
+} 

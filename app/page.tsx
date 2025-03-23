@@ -27,6 +27,14 @@ export default function Home() {
           </div>
 
           <div className="container flex flex-col items-center z-10 gap-8 px-4 md:px-6">
+            <Image
+              src="/placeholder.jpg"
+              alt="Agricultural growth"
+              width={500}
+              height={300}
+              className="rounded-lg shadow-lg mb-6 border-2 border-white/10"
+              priority
+            />
             <div className="max-w-3xl text-white space-y-6 text-center">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
                 Connecting Investors with Farmers for Sustainable Growth
