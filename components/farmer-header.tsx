@@ -18,6 +18,8 @@ import {
   Settings,
   User,
   FileText,
+  Brain,
+  LayoutGrid,
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -28,9 +30,26 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useFirebase } from "@/contexts/FirebaseContext"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 
 export function FarmerHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const { user, logout } = useFirebase()
+  const router = useRouter()
+
+  const handleLogout = async () => {
+    try {
+      await logout()
+      setIsMenuOpen(false)
+      toast.success("Logged out successfully")
+      router.push("/")
+    } catch (error) {
+      console.error("Logout error:", error)
+      toast.error("Failed to log out")
+    }
+  }
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background">
@@ -106,15 +125,15 @@ export function FarmerHeader() {
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src="/placeholder.svg?height=40&width=40" alt="User" />
-                  <AvatarFallback>MS</AvatarFallback>
+                  <AvatarFallback>{user?.displayName?.substring(0, 2) || user?.email?.substring(0, 2) || "FA"}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">Maria Silva</p>
-                  <p className="text-xs leading-none text-muted-foreground">maria@greenharvest.com</p>
+                  <p className="text-sm font-medium leading-none">{user?.displayName || user?.email?.split('@')[0] || "Farmer"}</p>
+                  <p className="text-xs leading-none text-muted-foreground">{user?.email || ""}</p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
@@ -142,7 +161,7 @@ export function FarmerHeader() {
                 <span>Help & Support</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Log out</span>
               </DropdownMenuItem>
@@ -212,6 +231,36 @@ export function FarmerHeader() {
                     <span>Messages</span>
                   </Link>
                 </nav>
+
+                <div className="py-4">
+                  <h2 className="px-3 text-lg font-semibold tracking-tight">AI Tools</h2>
+                  <div className="space-y-1">
+                    <Link
+                      href="/tools/farmer-prediction"
+                      className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground hover:text-primary hover:bg-muted"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <Brain className="h-5 w-5" />
+                      <span>Loan Approval Prediction</span>
+                    </Link>
+                    <Link
+                      href="/tools/farm-plan-prediction"
+                      className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground hover:text-primary hover:bg-muted"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <FileText className="h-5 w-5" />
+                      <span>Farm Plan Viability</span>
+                    </Link>
+                    <Link
+                      href="/farm-visualization"
+                      className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground hover:text-primary hover:bg-muted"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <LayoutGrid className="h-5 w-5" />
+                      <span>Farm Layout Generator</span>
+                    </Link>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -220,7 +269,7 @@ export function FarmerHeader() {
                 <Button
                   variant="ghost"
                   className="w-full justify-start text-muted-foreground"
-                  onClick={() => setIsMenuOpen(false)}
+                  onClick={handleLogout}
                 >
                   <LogOut className="mr-2 h-5 w-5" />
                   <span>Log out</span>

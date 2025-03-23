@@ -6,11 +6,12 @@ import { FarmerEarningsChart } from '@/components/farmer-earnings-chart';
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { AlertCircle, ArrowUpRight, Clock, Leaf, LineChart, PenSquare, ShieldCheck, Sprout } from "lucide-react"
+import { AlertCircle, ArrowUpRight, Clock, Leaf, LineChart, PenSquare, ShieldCheck, Sprout, UserPlus, LogIn } from "lucide-react"
 import Link from "next/link"
 import { FarmerHeader } from "@/components/farmer-header"
 import { FarmerMetricsCard } from "@/components/farmer-metrics-card"
 import { Badge } from "@/components/ui/badge"
+import { useRouter } from 'next/navigation';
 
 const defaultEarningsData = [
   { month: 'Jan', earnings: 5000 },
@@ -22,14 +23,74 @@ const defaultEarningsData = [
 ];
 
 export default function FarmerDashboard() {
-  const { user, userType, loading, farms } = useFirebase();
+  const { user, userType, loading } = useFirebase();
+  const router = useRouter();
+
+  // Debugging console log to see auth state
+  useEffect(() => {
+    console.log("Auth state:", { user, userType, loading });
+  }, [user, userType, loading]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500 mb-4"></div>
+        <p className="text-lg">Loading your dashboard...</p>
+      </div>
+    );
   }
 
-  if (!user || userType !== 'farmer') {
-    return <div>Access denied. Please login as a farmer.</div>;
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-4">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6 text-center">
+          <h2 className="text-2xl font-bold mb-4">You need to log in first</h2>
+          <p className="text-gray-600 mb-6">Please log in to access the farmer dashboard.</p>
+          
+          <div className="space-y-4">
+            <Button className="w-full bg-green-700 hover:bg-green-800" asChild>
+              <Link href="/farmer/login">
+                <LogIn className="mr-2 h-4 w-4" />
+                Login as Farmer
+              </Link>
+            </Button>
+            
+            <p className="text-sm text-gray-500">Don't have an account?</p>
+            
+            <Button variant="outline" className="w-full" asChild>
+              <Link href="/farmer/register">
+                <UserPlus className="mr-2 h-4 w-4" />
+                Register as Farmer
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (userType !== 'farmer') {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-4">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6 text-center">
+          <h2 className="text-2xl font-bold mb-4">Access Denied</h2>
+          <p className="text-gray-600 mb-6">
+            You're logged in as <span className="font-semibold">{userType || 'a user'}</span>, but this page is only for farmers.
+          </p>
+          <div className="space-y-4">
+            <Button variant="default" className="w-full" onClick={() => router.push('/')}>
+              Go to Home Page
+            </Button>
+            <p className="text-sm text-gray-500">Want to log in as a farmer instead?</p>
+            <Button variant="outline" className="w-full" asChild>
+              <Link href="/farmer/login">
+                Login as Farmer
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -42,7 +103,7 @@ export default function FarmerDashboard() {
             <section>
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                  <h1 className="text-3xl font-bold mb-2">Welcome back, Maria</h1>
+                  <h1 className="text-3xl font-bold mb-2">Welcome back, {user.displayName || user.email?.split('@')[0] || 'Farmer'}</h1>
                   <p className="text-muted-foreground">Track your farm's performance and funding status</p>
                 </div>
                 <Button className="bg-[#8D6E63] hover:bg-[#8D6E63]/90 w-full md:w-auto" asChild>

@@ -8,10 +8,12 @@ import { ProjectedReturnChart } from '@/components/projected-return-chart';
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { AlertCircle, ChevronRight } from "lucide-react"
+import { AlertCircle, ChevronRight, LogIn, UserPlus } from "lucide-react"
 import { InvestorHeader } from "@/components/investor-header"
 import { FarmCard } from "@/components/farm-card"
 import { PortfolioCard } from "@/components/portfolio-card"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 const defaultPieData = [
   { name: 'Low Risk', value: 40 },
@@ -38,19 +40,79 @@ const defaultReturnData = [
 
 export default function InvestorDashboard() {
   const { user, userType, loading, investments, fetchUserInvestments } = useFirebase();
+  const router = useRouter();
+
+  // Debugging console log to see auth state
+  useEffect(() => {
+    console.log("Auth state:", { user, userType, loading });
+  }, [user, userType, loading]);
 
   useEffect(() => {
     if (user) {
       fetchUserInvestments(user.uid);
     }
-  }, [user]);
+  }, [user, fetchUserInvestments]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"></div>
+        <p className="text-lg">Loading your dashboard...</p>
+      </div>
+    );
   }
 
-  if (!user || userType !== 'investor') {
-    return <div>Access denied. Please login as an investor.</div>;
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-4">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6 text-center">
+          <h2 className="text-2xl font-bold mb-4">You need to log in first</h2>
+          <p className="text-gray-600 mb-6">Please log in to access the investor dashboard.</p>
+          
+          <div className="space-y-4">
+            <Button className="w-full bg-blue-700 hover:bg-blue-800" asChild>
+              <Link href="/investor/login">
+                <LogIn className="mr-2 h-4 w-4" />
+                Login as Investor
+              </Link>
+            </Button>
+            
+            <p className="text-sm text-gray-500">Don't have an account?</p>
+            
+            <Button variant="outline" className="w-full" asChild>
+              <Link href="/investor/register">
+                <UserPlus className="mr-2 h-4 w-4" />
+                Register as Investor
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (userType !== 'investor') {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-4">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6 text-center">
+          <h2 className="text-2xl font-bold mb-4">Access Denied</h2>
+          <p className="text-gray-600 mb-6">
+            You're logged in as <span className="font-semibold">{userType || 'a user'}</span>, but this page is only for investors.
+          </p>
+          <div className="space-y-4">
+            <Button variant="default" className="w-full" onClick={() => router.push('/')}>
+              Go to Home Page
+            </Button>
+            <p className="text-sm text-gray-500">Want to log in as an investor instead?</p>
+            <Button variant="outline" className="w-full" asChild>
+              <Link href="/investor/login">
+                Login as Investor
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -61,7 +123,7 @@ export default function InvestorDashboard() {
         <div className="container px-4 md:px-6">
           <div className="grid gap-6">
             <section>
-              <h1 className="text-3xl font-bold mb-2">Welcome back, Michael</h1>
+              <h1 className="text-3xl font-bold mb-2">Welcome back, {user.displayName || user.email?.split('@')[0] || 'Investor'}</h1>
               <p className="text-muted-foreground mb-6">
                 Explore personalized investment opportunities tailored to your risk profile and investment timeline.
               </p>

@@ -10,9 +10,15 @@ interface FirebaseContextType {
   loading: boolean;
   signUp: (email: string, password: string, name: string, userType: 'farmer' | 'investor') => Promise<any>;
   signIn: (email: string, password: string) => Promise<any>;
-  signInWithGoogle: () => Promise<any>;
+  signInWithGoogle: (specificUserType?: 'farmer' | 'investor') => Promise<any>;
   signInWithPhone: (phoneNumber: string) => Promise<any>;
   logout: () => Promise<void>;
+  checkUserExists: (uid: string, requiredType?: 'farmer' | 'investor') => Promise<{
+    exists: boolean;
+    correctType: boolean;
+    currentType?: string;
+    error?: any;
+  }>;
   farms: any[];
   investments: any[];
   addFarm: (farmData: any) => Promise<string>;

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,6 +17,9 @@ import {
   Search,
   Settings,
   User,
+  Brain,
+  FileText,
+  LayoutGrid,
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -26,9 +30,38 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useFirebase } from "@/contexts/FirebaseContext"
+import { toast } from "sonner"
 
 export function InvestorHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const { user, logout } = useFirebase()
+  const router = useRouter()
+
+  const handleLogout = async () => {
+    try {
+      await logout()
+      toast.success("Successfully logged out")
+      router.push("/")
+    } catch (error) {
+      toast.error("Failed to log out. Please try again.")
+      console.error("Logout error:", error)
+    }
+  }
+
+  // Get user initials for avatar fallback
+  const getUserInitials = () => {
+    if (!user) return "U"
+    if (user.displayName) {
+      return user.displayName
+        .split(" ")
+        .map((name: string) => name[0])
+        .join("")
+        .toUpperCase()
+        .substring(0, 2)
+    }
+    return user.email ? user.email[0].toUpperCase() : "U"
+  }
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background">
@@ -103,16 +136,16 @@ export function InvestorHeader() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src="/placeholder.svg?height=40&width=40" alt="User" />
-                  <AvatarFallback>MJ</AvatarFallback>
+                  <AvatarImage src={user?.photoURL || ""} alt="User" />
+                  <AvatarFallback>{getUserInitials()}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">Michael Johnson</p>
-                  <p className="text-xs leading-none text-muted-foreground">michael@example.com</p>
+                  <p className="text-sm font-medium leading-none">{user?.displayName || user?.email?.split('@')[0] || "User"}</p>
+                  <p className="text-xs leading-none text-muted-foreground">{user?.email || ""}</p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
@@ -140,7 +173,7 @@ export function InvestorHeader() {
                 <span>Help & Support</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Log out</span>
               </DropdownMenuItem>
@@ -202,6 +235,36 @@ export function InvestorHeader() {
                     <span>Analytics</span>
                   </Link>
                 </nav>
+
+                <div className="py-4">
+                  <h2 className="px-3 text-lg font-semibold tracking-tight">AI Tools</h2>
+                  <div className="space-y-1">
+                    <Link
+                      href="/tools/farmer-prediction"
+                      className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground hover:text-primary hover:bg-muted"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <Brain className="h-5 w-5" />
+                      <span>Loan Approval Prediction</span>
+                    </Link>
+                    <Link
+                      href="/tools/farm-plan-prediction"
+                      className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground hover:text-primary hover:bg-muted"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <FileText className="h-5 w-5" />
+                      <span>Farm Plan Viability</span>
+                    </Link>
+                    <Link
+                      href="/farm-visualization"
+                      className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground hover:text-primary hover:bg-muted"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <LayoutGrid className="h-5 w-5" />
+                      <span>Farm Layout Generator</span>
+                    </Link>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -210,7 +273,7 @@ export function InvestorHeader() {
                 <Button
                   variant="ghost"
                   className="w-full justify-start text-muted-foreground"
-                  onClick={() => setIsMenuOpen(false)}
+                  onClick={handleLogout}
                 >
                   <LogOut className="mr-2 h-5 w-5" />
                   <span>Log out</span>

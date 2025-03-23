@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Menu, X } from "lucide-react"
+import { Menu, X, LogOut, ChevronDown, Tractor, Building2, Brain, FileText, LayoutGrid } from "lucide-react"
 import { LoginForm } from "@/components/login-form"
 import {
   Dialog,
@@ -16,11 +16,29 @@ import {
 import { useFirebase } from "@/contexts/FirebaseContext"
 import { UserProfile } from "@/components/user-profile"
 import { toast } from "sonner"
-import { LogOut } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 export function LandingHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const { user, loading } = useFirebase()
+  const { user, loading, logout } = useFirebase()
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setIsMenuOpen(false);
+      toast.success("Logged out successfully");
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Failed to log out");
+    }
+  }
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/5 backdrop-blur-md border-b border-white/10">
@@ -74,22 +92,33 @@ export function LandingHeader() {
             <Link href="/contact" className="text-white/80 hover:text-white transition-colors">
               Contact
             </Link>
-            <div className="relative group">
-              <button className="text-white/80 hover:text-white transition-colors flex items-center gap-1">
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger className="text-white/80 hover:text-white transition-colors flex items-center gap-1">
                 AI Tools
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-chevron-down">
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-              </button>
-              <div className="absolute left-0 mt-2 w-48 bg-[#2E2E2E] rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
-                <Link href="/tools/farmer-prediction" className="block px-4 py-2 text-white hover:bg-white/10">
-                  Loan Approval Prediction
-                </Link>
-                <Link href="/tools/farm-plan-prediction" className="block px-4 py-2 text-white hover:bg-white/10">
-                  Farm Plan Viability
-                </Link>
-              </div>
-            </div>
+                <ChevronDown className="h-4 w-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-[#2E2E2E] border-white/10">
+                <DropdownMenuItem asChild>
+                  <Link href="/tools/farmer-prediction" className="text-white hover:bg-white/10 cursor-pointer">
+                    <Brain className="mr-2 h-4 w-4" />
+                    Loan Approval Prediction
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/tools/farm-plan-prediction" className="text-white hover:bg-white/10 cursor-pointer">
+                    <FileText className="mr-2 h-4 w-4" />
+                    Farm Plan Viability
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/farm-visualization" className="text-white hover:bg-white/10 cursor-pointer">
+                    <LayoutGrid className="mr-2 h-4 w-4" />
+                    Farm Layout Generator
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </nav>
 
           <div className="hidden md:flex items-center gap-4">
@@ -99,20 +128,28 @@ export function LandingHeader() {
               <UserProfile />
             ) : (
               <>
-                <Dialog>
-                  <DialogTrigger asChild>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
                     <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">
                       Log In
+                      <ChevronDown className="ml-1 h-4 w-4" />
                     </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                      <DialogTitle>Account Access</DialogTitle>
-                      <DialogDescription>Log in to your account or create a new one</DialogDescription>
-                    </DialogHeader>
-                    <LoginForm />
-                  </DialogContent>
-                </Dialog>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="bg-[#2E2E2E] border-white/10">
+                    <DropdownMenuItem asChild>
+                      <Link href="/farmer/login" className="text-white hover:bg-white/10 cursor-pointer">
+                        <Tractor className="mr-2 h-4 w-4" />
+                        Login as Farmer
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/investor/login" className="text-white hover:bg-white/10 cursor-pointer">
+                        <Building2 className="mr-2 h-4 w-4" />
+                        Login as Investor
+                      </Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
 
                 <Dialog>
                   <DialogTrigger asChild>
@@ -155,10 +192,16 @@ export function LandingHeader() {
             <div className="px-6 py-2 border-t border-white/10">
               <div className="font-medium py-1">AI Tools</div>
               <Link href="/tools/farmer-prediction" className="block pl-4 py-2 hover:bg-white/10" onClick={() => setIsMenuOpen(false)}>
+                <Brain className="inline-block mr-2 h-4 w-4" />
                 Loan Approval Prediction
               </Link>
               <Link href="/tools/farm-plan-prediction" className="block pl-4 py-2 hover:bg-white/10" onClick={() => setIsMenuOpen(false)}>
+                <FileText className="inline-block mr-2 h-4 w-4" />
                 Farm Plan Viability
+              </Link>
+              <Link href="/farm-visualization" className="block pl-4 py-2 hover:bg-white/10" onClick={() => setIsMenuOpen(false)}>
+                <LayoutGrid className="inline-block mr-2 h-4 w-4" />
+                Farm Layout Generator
               </Link>
             </div>
             
@@ -174,16 +217,7 @@ export function LandingHeader() {
                   <Button 
                     variant="outline" 
                     className="w-full justify-center border-red-500/50 text-red-500 hover:bg-red-500/10"
-                    onClick={async () => {
-                      try {
-                        await useFirebase().logout();
-                        setIsMenuOpen(false);
-                        toast.success("Logged out successfully");
-                      } catch (error) {
-                        console.error("Logout error:", error);
-                        toast.error("Failed to log out");
-                      }
-                    }}
+                    onClick={handleLogout}
                   >
                     <LogOut className="mr-2 h-4 w-4" />
                     Log Out
@@ -191,33 +225,38 @@ export function LandingHeader() {
                 </div>
               ) : (
                 <>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" className="border-white/20 text-white w-full justify-center">
-                        Log In
+                  <div className="space-y-2">
+                    <div className="font-medium mb-1">Login as:</div>
+                    <Link href="/farmer/login" onClick={() => setIsMenuOpen(false)}>
+                      <Button variant="outline" className="w-full justify-start text-white border-[#8D6E63] hover:bg-[#8D6E63]/10">
+                        <Tractor className="mr-2 h-4 w-4" />
+                        Farmer
                       </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-md">
-                      <DialogHeader>
-                        <DialogTitle>Account Access</DialogTitle>
-                        <DialogDescription>Log in to your account or create a new one</DialogDescription>
-                      </DialogHeader>
-                      <LoginForm />
-                    </DialogContent>
-                  </Dialog>
+                    </Link>
+                    <Link href="/investor/login" onClick={() => setIsMenuOpen(false)}>
+                      <Button variant="outline" className="w-full justify-start text-white border-[#2196F3] hover:bg-[#2196F3]/10">
+                        <Building2 className="mr-2 h-4 w-4" />
+                        Investor
+                      </Button>
+                    </Link>
+                  </div>
 
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button className="bg-[#4CAF50] hover:bg-[#4CAF50]/90 w-full justify-center">Sign Up</Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-md">
-                      <DialogHeader>
-                        <DialogTitle>Create Account</DialogTitle>
-                        <DialogDescription>Join UniAgric to connect with investors or farmers</DialogDescription>
-                      </DialogHeader>
-                      <LoginForm defaultTab="signup" />
-                    </DialogContent>
-                  </Dialog>
+                  <div className="mt-4">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button className="bg-[#4CAF50] hover:bg-[#4CAF50]/90 w-full justify-center">
+                          Sign Up
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>Create Account</DialogTitle>
+                          <DialogDescription>Join UniAgric to connect with investors or farmers</DialogDescription>
+                        </DialogHeader>
+                        <LoginForm defaultTab="signup" />
+                      </DialogContent>
+                    </Dialog>
+                  </div>
                 </>
               )}
             </div>

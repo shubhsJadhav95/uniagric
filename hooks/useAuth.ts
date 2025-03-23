@@ -39,6 +39,25 @@ export function useAuth() {
     return unsubscribe;
   }, []);
 
+  const checkUserExists = async (uid: string, requiredType?: 'farmer' | 'investor') => {
+    try {
+      const userDoc = await getDoc(doc(db, 'users', uid));
+      if (!userDoc.exists()) {
+        return { exists: false, correctType: false };
+      }
+      
+      const userType = userDoc.data().userType;
+      if (requiredType && userType !== requiredType) {
+        return { exists: true, correctType: false, currentType: userType };
+      }
+      
+      return { exists: true, correctType: true, currentType: userType };
+    } catch (error) {
+      console.error('Error checking user existence:', error);
+      return { exists: false, correctType: false, error };
+    }
+  };
+
   const signUp = async (email: string, password: string, name: string, userType: 'farmer' | 'investor') => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -64,7 +83,7 @@ export function useAuth() {
     }
   };
 
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = async (specificUserType?: 'farmer' | 'investor') => {
     try {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
@@ -72,15 +91,23 @@ export function useAuth() {
       
       // Check if user exists in Firestore
       const userDoc = await getDoc(doc(db, 'users', user.uid));
+      
       if (!userDoc.exists()) {
+        // If this is a new user, create a document with the specified or default user type
         await setDoc(doc(db, 'users', user.uid), {
           uid: user.uid,
           name: user.displayName,
           email: user.email,
-          userType: 'investor', // Default to investor
+          userType: specificUserType || 'investor', // Use specified type or default to investor
           createdAt: new Date()
         });
+      } else if (specificUserType) {
+        // If a specific user type was requested and the user already exists, update their type
+        await setDoc(doc(db, 'users', user.uid), {
+          userType: specificUserType
+        }, { merge: true });
       }
+      
       return user;
     } catch (error) {
       throw error;
@@ -119,6 +146,7 @@ export function useAuth() {
     signIn,
     signInWithGoogle,
     signInWithPhone,
-    logout
+    logout,
+    checkUserExists
   };
 } 
